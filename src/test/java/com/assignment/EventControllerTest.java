@@ -59,8 +59,8 @@ public class EventControllerTest {
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
         Event event = getEvent();
         EventRequest eventRequest = getEventRequest();
-        when(EventService.getSumByInput(any(String.class))).thenReturn(36);
-        ResponseEntity<Integer> responseEntity = EventController.getEvents("cost");
+        when(EventService.getSumByInput(any(String.class))).thenReturn(36l);
+        ResponseEntity<Long> responseEntity = EventController.getEvents("cost");
         assertThat(responseEntity.getStatusCodeValue()).isEqualTo(200);
     }
     
