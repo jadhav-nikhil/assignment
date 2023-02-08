@@ -10,7 +10,7 @@ public class AssignmentExampleApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(AssignmentExampleApplication.class, args);
-		log.info("Spring boot Application started ")
+		log.info("Spring boot Application started ");
 	}
 
 }
