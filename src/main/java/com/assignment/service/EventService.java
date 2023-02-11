@@ -18,11 +18,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class EventService {
 
-    private final EventRepo eventRepo;
+    private EventRepo eventRepo;
 
     public Event saveEvent(@RequestBody EventRequest eventRequest) {
         Event event = mapToEvent(eventRequest);
-        return eventRepo.save(event);
+        Event  eventResult = eventRepo.save(event);
+        return  eventResult;
     }
 
     public Event getEvent(int id) throws EventNotFoundException {
