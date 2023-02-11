@@ -5,71 +5,90 @@ import com.assignment.dto.EventRequest;
 import com.assignment.entity.Event;
 import com.assignment.exception.EventNotFoundException;
 import com.assignment.exception.InvalidInputException;
-import com.assignment.repo.EventRepo;
 import com.assignment.service.EventService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import java.util.Arrays;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class EventControllerTest {
 
-    @InjectMocks
-    EventController EventController;
     @Mock
-    EventService EventService;
+    private EventService eventService;
+
+    @InjectMocks
+    private EventController eventController;
 
     @Test
-    public void testAddEvent()
-    {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
-        Event event = getEvent();
-        EventRequest eventRequest = getEventRequest();
-        when(EventService.saveEvent(any(EventRequest.class))).thenReturn(event);
-        ResponseEntity<Event> responseEntity = EventController.saveEvent(new EventRequest("Nikhil","pune",12,10));
-        assertThat(responseEntity.getStatusCodeValue()).isEqualTo(201);
+    void saveEventTest() {
+        EventRequest eventRequest = new EventRequest();
+        Event event = new Event();
+        when(eventService.saveEvent(eventRequest)).thenReturn(event);
 
-    }
+        ResponseEntity<Event> response = eventController.saveEvent(eventRequest);
 
-    @Test
-    public void testGetByIDEvent() throws EventNotFoundException {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
-        Event event = getEvent();
-        EventRequest eventRequest = getEventRequest();
-        when(EventService.getEvent(any(Integer.class))).thenReturn(event);
-        ResponseEntity<Event> responseEntity = EventController.getEvent(1);
-        assertThat(responseEntity.getStatusCodeValue()).isEqualTo(200);
+        assertEquals(event, response.getBody());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(eventService).saveEvent(eventRequest);
     }
 
     @Test
-    public void validateSumByInput() throws EventNotFoundException, InvalidInputException {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
-        Event event = getEvent();
-        EventRequest eventRequest = getEventRequest();
-        when(EventService.getSumByInput(any(String.class))).thenReturn(36l);
-        ResponseEntity<Long> responseEntity = EventController.getEvents("cost");
-        assertThat(responseEntity.getStatusCodeValue()).isEqualTo(200);
-    }
-    
-    private EventRequest getEventRequest(){
-       return new EventRequest("Nikhil","pune",12,10);
+    void getEventTest() throws EventNotFoundException {
+        int id = 1;
+        Event event = new Event();
+        when(eventService.getEvent(id)).thenReturn(event);
+
+        ResponseEntity<Event> response = eventController.getEvent(id);
+
+        assertEquals(event, response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(eventService).getEvent(id);
     }
 
-    private Event getEvent(){
-        return Event.builder().id(1).cost(10).duration(12).name("Nikhil").location("pune").build();
+    @Test
+    void getEventTest_EventNotFoundException() throws EventNotFoundException {
+        int id = 1;
+        when(eventService.getEvent(id)).thenThrow(EventNotFoundException.class);
+
+        assertThrows(EventNotFoundException.class, () -> eventController.getEvent(id));
+        verify(eventService).getEvent(id);
     }
 
+    @Test
+    void getEventsTest() throws EventNotFoundException, InvalidInputException {
+        int top = 2;
+        String by = "name";
+        List<Event> events = Arrays.asList(new Event(), new Event());
+        when(eventService.getEvents(top, by)).thenReturn(events);
+
+        ResponseEntity<List<Event>> response = eventController.getEvents(top, by);
+
+        assertEquals(events, response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(eventService).getEvents(top, by);
+    }
+
+    @Test
+    void testGetEvents() throws InvalidInputException, EventNotFoundException {
+        String by = "name";
+        when(eventService.getSumByInput(by)).thenReturn(100l);
+        ResponseEntity<Long> events = eventController.getEvents(by);
+        assertEquals(HttpStatus.OK, events.getStatusCode());
+        assertEquals(100l, events.getBody());
+    }
+
+    @Test
+    void testGetEventsByInvalidInput() throws InvalidInputException, EventNotFoundException {
+        String by = "name";
+        when(eventService.getSumByInput(by)).thenThrow(InvalidInputException.class);
+        assertThrows(InvalidInputException.class, () -> eventController.getEvents(by));
+    }
 }
