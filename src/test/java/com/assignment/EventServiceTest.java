@@ -88,24 +88,22 @@ public class EventServiceTest {
         int limit = 2;
         when(eventRepo.findAll(PageRequest.of(0, 2, Sort.by(Sort.Order.asc(input)))))
                 .thenReturn(new PageImpl<>(Collections.emptyList()));
-        assertThrows(EventNotFoundException.class, () -> eventService.getEvents(limit,input));
+        assertThrows(EventNotFoundException.class, () -> eventService.getEvents(limit, input));
     }
-
 
 
     @Test
     public void testGetEventInvalidInput() throws InvalidInputException, EventNotFoundException {
         String input = "Invalid";
         int limit = 2;
-        assertThrows(InvalidInputException.class,() -> eventService.getEvents(limit,input));
+        assertThrows(InvalidInputException.class, () -> eventService.getEvents(limit, input));
     }
 
     @Test
     public void validInput() {
-      Boolean result  = eventService.validInput("cost");
-      assertTrue(result);
+        Boolean result = eventService.validInput("cost");
+        assertTrue(result);
     }
-
 
     @Test
     public void testValidInput_WhenInputIsInvalid_ShouldReturnFalse() {
@@ -114,5 +112,26 @@ public class EventServiceTest {
         assertFalse(result);
     }
 
+    @Test
+    public void testGetSumByInputByValidInput() throws InvalidInputException, EventNotFoundException {
+        String input = "cost";
+        when(eventRepo.sumCost()).thenReturn(300l);
+        Long result = eventService.getSumByInput(input);
+        assertEquals(300l,result);
+    }
+
+    @Test
+    public void testGetSumByInputByValidInput2() throws InvalidInputException, EventNotFoundException {
+        String input = "duration";
+        when(eventRepo.sumDuration()).thenReturn(400l);
+        Long result = eventService.getSumByInput(input);
+        assertEquals(400l,result);
+    }
+
+    @Test
+    public void testGetSumByInputByInvalidInput() {
+        String input = "invalid";
+        assertThrows(InvalidInputException.class, () -> eventService.getSumByInput(input));
+    }
 
 }
